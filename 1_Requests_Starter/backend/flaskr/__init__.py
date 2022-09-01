@@ -60,7 +60,16 @@ def create_app(test_config=None):
     # @DONE: Write a route that will delete a single book.
     #        Response body keys: 'success', 'deleted'(id of deleted book), 'books' and 'total_books'
     #        Response body keys: 'success', 'books' and 'total_books'
-   
+    @app.route('/books/<int:books_id>', methods=['DELETE'])
+    def get_specific_book(books_id):
+        book = Book.query.get(books_id)
+        book.delete()
+        total_books = Book.query.all()
+        return jsonify({
+            "success": True,
+            "deleted" : books_id,
+            "total_books" : len(total_books)
+        })
 
 
     # TEST: When completed, you will be able to delete a single book by clicking on the trashcan.
