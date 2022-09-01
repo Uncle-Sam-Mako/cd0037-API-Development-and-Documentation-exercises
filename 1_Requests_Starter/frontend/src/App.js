@@ -44,6 +44,7 @@ class App extends Component {
         },
         error: (error) => {
           alert('Unable to delete the book.')
+          console.log(error)
           return;
         }
       })
