@@ -142,7 +142,40 @@ def create_app(test_config=None):
             abort(422)
     # TEST: When completed, you will be able to a new book using the form. Try doing so from the last page of books.
     #       Your new book should show up immediately after you submit it at the end of the page.
-    # @app.route('/')
-    # def index():
-    #     return 'Hello world'
+    
+
+    #
+    @app.errorhandler(404)
+    def notFound(error):
+        return jsonify({
+            "success" : "false",
+            "error" : 404,
+            "message" : "Resource not found",
+        }), 404
+
+    @app.errorhandler(400)
+    def badRequest(error):
+        return jsonify({
+            "success" : "false",
+            "error" : 400,
+            "message" : "You entered a bad request",
+        }), 400
+
+    @app.errorhandler(422)
+    def unprocessable(error):
+        return jsonify({
+            "success" : "false",
+            "error" : 422,
+            "message" : "Unprocessable Entity",
+        }), 422
+    
+    @app.errorhandler(405)
+    def methodNotAllowed(error):
+        return jsonify({
+            "success" : "false",
+            "error" : 405,
+            "message" : "Method Not Allowed",
+        }), 405
+
+
     return app
