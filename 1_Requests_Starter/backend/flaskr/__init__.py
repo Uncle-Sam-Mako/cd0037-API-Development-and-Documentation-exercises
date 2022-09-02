@@ -15,11 +15,20 @@ BOOKS_PER_SHELF = 8
 #   - If you change any of the response body keys, make sure you update the frontend to correspond.
 
 
+def paginate_books(request, selection):
+    page = request.args.get('page', 1, type=int)
+    start = (page - 1) * BOOKS_PER_SHELF
+    end = start + BOOKS_PER_SHELF
+    books = [book.format() for book in selection]
+    books_on_page = books[start:end]
+    return books_on_page
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     setup_db(app)
     CORS(app)
+
 
     # CORS Headers
     @app.after_request
@@ -39,22 +48,31 @@ def create_app(test_config=None):
     #         Response body keys: 'success', 'books' and 'total_books'
     @app.route('/books/', methods=['GET'])
     def get_books():
-        page = request.args.get('page', 1, type=int)
-        start = (page - 1) * 8
-        end = start + 8
-        books = Book.query.all()
-        formatted_books = [book.format() for book in books]
-        return jsonify({
-            "success": True,
-            "books" : formatted_books[start:end],
-            "total_books" : len(formatted_books)
-        })
+        selection = Book.query.all()
+        books = paginate_books(request, selection)
+        #if the page contains some books
+        if len(books):
+            return jsonify({
+                "success": True,
+                "books" : books,
+                "total_books" : len(selection)
+            })
+        else:
+            abort(404)
     # TEST: When completed, the webpage will display books including title, author, and rating shown as stars
 
-    # @DONE: Write a route that will update a single book's rating.
+    # @TODO Write a route that will update a single book's rating.
     #         It should only be able to update the rating, not the entire representation
     #         and should follow API design principles regarding method and route.
     #         Response body keys: 'success'
+    @app.route('/books/<int:book_id>', methods=['PATCH'])
+    def changeRating(book_id):
+        book = Book.query.get(book_id)
+        book.rating = request.get_json()['rating']
+        book.update()
+        return jsonify({
+            "success" : True
+        })
     # TEST: When completed, you will be able to click on stars to update a book's rating and it will persist after refresh
 
     # @DONE: Write a route that will delete a single book.
@@ -74,7 +92,7 @@ def create_app(test_config=None):
 
     # TEST: When completed, you will be able to delete a single book by clicking on the trashcan.
 
-    # @TODO: Write a route that create a new book.
+    # @DONE: Write a route that create a new book.
     #        Response body keys: 'success', 'created'(id of created book), 'books' and 'total_books'
     @app.route('/books/', methods=['POST'])
     def submit_book():
