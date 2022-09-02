@@ -61,33 +61,54 @@ def create_app(test_config=None):
             abort(404)
     # TEST: When completed, the webpage will display books including title, author, and rating shown as stars
 
-    # @TODO Write a route that will update a single book's rating.
+    # @DONE Write a route that will update a single book's rating.
     #         It should only be able to update the rating, not the entire representation
     #         and should follow API design principles regarding method and route.
     #         Response body keys: 'success'
     @app.route('/books/<int:book_id>', methods=['PATCH'])
     def changeRating(book_id):
-        book = Book.query.get(book_id)
-        book.rating = request.get_json()['rating']
-        book.update()
-        return jsonify({
-            "success" : True
-        })
+
+        body = request.get_json()
+
+        try:
+            book = Book.query.filter(Book.id == book_id).one_or_none()
+
+            if book is None:
+                abort(404)
+
+            if 'rating' in body:
+                book.rating = int(body['rating'])
+
+            book.update()
+
+            return jsonify({
+                "success" : True,
+                'id' : book.id
+            })
+
+        except:
+            abort(400)
     # TEST: When completed, you will be able to click on stars to update a book's rating and it will persist after refresh
 
     # @DONE: Write a route that will delete a single book.
     #        Response body keys: 'success', 'deleted'(id of deleted book), 'books' and 'total_books'
     #        Response body keys: 'success', 'books' and 'total_books'
-    @app.route('/books/<int:books_id>', methods=['DELETE'])
-    def get_specific_book(books_id):
-        book = Book.query.get(books_id)
-        book.delete()
-        total_books = Book.query.all()
-        return jsonify({
-            "success": True,
-            "deleted" : books_id,
-            "total_books" : len(total_books)
-        })
+    @app.route('/books/<int:book_id>', methods=['DELETE'])
+    def delete_book(book_id):
+        
+        try:
+            book = Book.query.filter(Book.id == book_id).one_or_none()
+            if book is None:
+                abort(404)
+            book.delete()
+            total_books = Book.query.all()
+            return jsonify({
+                "success": True,
+                "deleted" : book_id,
+                "total_books" : len(total_books)
+            })
+        except:
+            abort(422)
 
 
     # TEST: When completed, you will be able to delete a single book by clicking on the trashcan.
